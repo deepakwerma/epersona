@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getPersonaReply } from "@/lib/ai";
 import { PersonaKey } from "@/lib/prompts";
+import { saveMessage } from "@/lib/chat";
 import {
   checkRateLimit,
   checkQuota,
@@ -14,16 +15,29 @@ import {
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (isBudgetExhausted()) {
-    return NextResponse.json({ error: "Free tier temporarily paused. Check back later." }, { status: 503 });
+  if (await isBudgetExhausted()) {
+    return NextResponse.json(
+      { error: "Free tier temporarily paused. Check back later." },
+      { status: 503 },
+    );
   }
-  if (!checkRateLimit(userId)) {
-    return NextResponse.json({ error: "Slow down — wait a few seconds between messages." }, { status: 429 });
+  if (!(await checkRateLimit(userId))) {
+    return NextResponse.json(
+      { error: "Slow down — wait a few seconds between messages." },
+      { status: 429 },
+    );
   }
-  if (!checkQuota(userId)) {
-    return NextResponse.json({ error: "You've used all your free messages. Thanks for trying e Persona!" }, { status: 403 });
+  if (!(await checkQuota(userId))) {
+    return NextResponse.json(
+      {
+        error:
+          "You've used all your free messages. Thanks for trying e Persona!",
+      },
+      { status: 403 },
+    );
   }
 
   const { persona, messages } = await req.json();
@@ -37,16 +51,30 @@ export async function POST(req: NextRequest) {
   const lastMessage = messages[messages.length - 1];
   if (lastMessage?.content?.length > LIMITS.MAX_INPUT_CHARS) {
     return NextResponse.json(
-      { error: `Message too long. Keep it under ${LIMITS.MAX_INPUT_CHARS} characters.` },
-      { status: 400 }
+      {
+        error: `Message too long. Keep it under ${LIMITS.MAX_INPUT_CHARS} characters.`,
+      },
+      { status: 400 },
     );
   }
 
   try {
-    const { reply, usage } = await getPersonaReply(persona as PersonaKey, messages);
-    incrementMessageCount(userId);
-    if (usage) recordSpend(usage.prompt_tokens ?? 0, usage.completion_tokens ?? 0);
-    return NextResponse.json({ reply, remaining: getRemainingMessages(userId) });
+    const { reply, usage } = await getPersonaReply(
+      persona as PersonaKey,
+      messages,
+    );
+    await incrementMessageCount(userId);
+    if (usage)
+      await recordSpend(usage.prompt_tokens ?? 0, usage.completion_tokens ?? 0);
+
+    const lastUserMessage = messages[messages.length - 1];
+    await saveMessage(userId, persona, "user", lastUserMessage.content);
+    await saveMessage(userId, persona, "assistant", reply);
+
+    return NextResponse.json({
+      reply,
+      remaining: await getRemainingMessages(userId),
+    });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "AI call failed" }, { status: 500 });

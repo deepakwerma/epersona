@@ -17,19 +17,25 @@ export async function getPersonaReply(
     ...history,
   ];
 
-  const result = await client.chat.completions.create({
-    model: "deepseek-v4-flash",
-    messages,
-    max_tokens: 300,
-  });
+  async function callOnce() {
+    const result = await client.chat.completions.create({
+      model: "deepseek-v4-flash",
+      messages,
+      max_tokens: 600,
+    });
+    return {
+      content: result.choices[0].message.content?.trim() ?? "",
+      usage: result.usage,
+    };
+  }
 
-  const content = result.choices[0].message.content?.trim();
+  let attempt = await callOnce();
+  if (!attempt.content) {
+    attempt = await callOnce(); // retry once if empty
+  }
 
   return {
-    reply:
-      content && content.length > 0
-        ? content
-        : "Arre, kuch samajh nahi aaya, phir se pucho?",
-    usage: result.usage,
+    reply: attempt.content || "Arre, kuch samajh nahi aaya, phir se pucho?",
+    usage: attempt.usage,
   };
 }

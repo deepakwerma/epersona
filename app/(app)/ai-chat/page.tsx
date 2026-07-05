@@ -36,6 +36,13 @@ export default function AIChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    fetch(`/api/history?persona=${persona}`)
+      .then((res) => res.json())
+      .then((data) => setMessages(data.history ?? []))
+      .catch(() => setMessages([]));
+  }, [persona]);
+
   async function handleSend() {
     if (!input.trim() || isLoading) return;
     const next = [...messages, { role: "user" as const, content: input }];
@@ -51,6 +58,7 @@ export default function AIChatPage() {
           content: reply?.trim() ? reply : "Something went wrong. Try again.",
         },
       ]);
+      setRemaining(remaining);
     } catch (err) {
       console.error("Chat error:", err);
       const message =
@@ -83,7 +91,6 @@ export default function AIChatPage() {
               key={key}
               onClick={() => {
                 setPersona(key);
-                setMessages([]);
               }}
               className={`rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm ${
                 persona === key
