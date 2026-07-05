@@ -23,8 +23,13 @@ export async function getPersonaReply(
     max_tokens: 300,
   });
 
+  const content = result.choices[0].message.content?.trim();
+
   return {
-    reply: result.choices[0].message.content ?? "",
+    reply:
+      content && content.length > 0
+        ? content
+        : "Arre, kuch samajh nahi aaya, phir se pucho?",
     usage: result.usage,
   };
 }

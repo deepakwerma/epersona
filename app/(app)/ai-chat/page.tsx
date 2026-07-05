@@ -44,13 +44,18 @@ export default function AIChatPage() {
     setIsLoading(true);
     try {
       const { reply, remaining } = await sendMessage(persona, next);
-      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-      setRemaining(remaining);
-    } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Something went wrong. Try again." },
+        {
+          role: "assistant",
+          content: reply?.trim() ? reply : "Something went wrong. Try again.",
+        },
       ]);
+    } catch (err) {
+      console.error("Chat error:", err);
+      const message =
+        err instanceof Error ? err.message : "Something went wrong. Try again.";
+      setMessages((prev) => [...prev, { role: "assistant", content: message }]);
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +81,10 @@ export default function AIChatPage() {
           {(Object.keys(PERSONAS) as Persona[]).map((key) => (
             <button
               key={key}
-              onClick={() => setPersona(key)}
+              onClick={() => {
+                setPersona(key);
+                setMessages([]);
+              }}
               className={`rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm ${
                 persona === key
                   ? "bg-[#FACC15] text-[#0C0C0B]"
