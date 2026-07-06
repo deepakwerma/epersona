@@ -2,16 +2,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUp, Sparkles } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
 type Persona = "hitesh" | "piyush";
 type Message = { role: "user" | "assistant"; content: string };
 
-const PERSONAS: Record<Persona, { name: string; tagline: string }> = {
-  hitesh: { name: "Hitesh Choudhary", tagline: "Chai aur Code" },
-  piyush: { name: "Piyush Garg", tagline: "Full-stack & systems" },
+const PERSONAS: Record<Persona, { name: string; tagline: string; avatar: string }> = {
+  hitesh: { name: "Hitesh Choudhary", tagline: "Chai aur Code", avatar: "/personas/hitesh.jpg" },
+  piyush: { name: "Piyush Garg", tagline: "Full-stack & systems", avatar: "/personas/piyush.jpg" },
 };
 
 const glassStyle: React.CSSProperties = {
@@ -137,7 +137,11 @@ export default function AIChatPage() {
                 exit={{ opacity: 0 }}
                 className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center sm:px-6"
               >
-                <Sparkles className="h-6 w-6 text-(--accent)" strokeWidth={1.5} />
+                <img
+                  src={PERSONAS[persona].avatar}
+                  alt={PERSONAS[persona].name}
+                  className="h-16 w-16 rounded-full border-2 border-(--accent) object-cover"
+                />
                 <h1 className="font-heading text-xl font-semibold sm:text-2xl">
                   Ask {PERSONAS[persona].name.split(" ")[0]} anything
                 </h1>
@@ -163,12 +167,14 @@ export default function AIChatPage() {
                     >
                       <div className="flex min-w-0 max-w-[90%] gap-2 sm:max-w-[80%] sm:gap-3">
                         {m.role === "assistant" && (
-                          <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-(--border) text-xs font-medium">
-                            {PERSONAS[persona].name[0]}
-                          </div>
+                          <img
+                            src={PERSONAS[persona].avatar}
+                            alt={PERSONAS[persona].name}
+                            className="mt-0.5 h-7 w-7 shrink-0 rounded-full border border-(--border) object-cover"
+                          />
                         )}
                         <div
-                          className={`min-w-0 wrap-break-word rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed sm:px-4 sm:py-3 sm:text-base ${
+                          className={`min-w-0 break-words rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed sm:py-3 sm:text-base [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:p-3 [&_code]:break-words ${
                             m.role === "user"
                               ? "bg-(--user-bubble) text-(--user-bubble-text)"
                               : "border border-(--border) bg-(--bg-surface)"
@@ -181,9 +187,11 @@ export default function AIChatPage() {
                   ))}
                   {isLoading && (
                     <div className="flex justify-start gap-2 sm:gap-3">
-                      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-(--border) text-xs font-medium">
-                        {PERSONAS[persona].name[0]}
-                      </div>
+                      <img
+                        src={PERSONAS[persona].avatar}
+                        alt={PERSONAS[persona].name}
+                        className="mt-0.5 h-7 w-7 shrink-0 rounded-full border border-(--border) object-cover"
+                      />
                       <div className="flex items-center gap-1 rounded-2xl border border-(--border) bg-(--bg-surface) px-4 py-3">
                         {[0, 1, 2].map((i) => (
                           <motion.span
