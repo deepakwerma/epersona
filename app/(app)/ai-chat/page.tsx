@@ -9,9 +9,20 @@ import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 type Persona = "hitesh" | "piyush";
 type Message = { role: "user" | "assistant"; content: string };
 
-const PERSONAS: Record<Persona, { name: string; tagline: string; avatar: string }> = {
-  hitesh: { name: "Hitesh Choudhary", tagline: "Chai aur Code", avatar: "/personas/hitesh.jpg" },
-  piyush: { name: "Piyush Garg", tagline: "Full-stack & systems", avatar: "/personas/piyush.jpg" },
+const PERSONAS: Record<
+  Persona,
+  { name: string; tagline: string; avatar: string }
+> = {
+  hitesh: {
+    name: "Hitesh Choudhary",
+    tagline: "Chai aur Code",
+    avatar: "/personas/hitesh.jpg",
+  },
+  piyush: {
+    name: "Piyush Garg",
+    tagline: "Full-stack & systems",
+    avatar: "/personas/piyush.jpg",
+  },
 };
 
 const glassStyle: React.CSSProperties = {
@@ -180,7 +191,25 @@ export default function AIChatPage() {
                               : "border border-(--border) bg-(--bg-surface)"
                           }`}
                         >
-                          <ReactMarkdown>{m.content}</ReactMarkdown>
+                          <ReactMarkdown
+                            components={{
+                              a: function Anchor(props) {
+                                return (
+                                  <a
+                                    {...props}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      color: "#3b82f6",
+                                      textDecoration: "underline",
+                                    }}
+                                  />
+                                );
+                              },
+                            }}
+                          >
+                            {m.content}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     </motion.div>
