@@ -1,197 +1,124 @@
 "use client";
 
-import { useState } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { VStack, HStack } from "@astryxdesign/core/Layout";
-import { Text } from "@astryxdesign/core/Text";
-import { Button } from "@astryxdesign/core/Button";
-import { Avatar } from "@astryxdesign/core/Avatar";
-import { DropdownMenu } from "@astryxdesign/core/DropdownMenu";
 import {
-  PanelLeft,
+  Sidebar as SidebarPrimitive,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
   SquarePen,
   MessageSquare,
   Settings,
   LogOut,
   BadgeCheck,
+  ChevronsUpDown,
 } from "lucide-react";
 
-// ---------- Types ----------
-
-type ChatHistoryItem = {
-  id: string;
-  title: string;
-};
-
-// Placeholder — wire this to real data (Neon/Clerk userId) later
+type ChatHistoryItem = { id: string; title: string };
 const CHAT_HISTORY: ChatHistoryItem[] = [];
 
-// ---------- Shared styles ----------
-
-const fullWidthRow: React.CSSProperties = {
-  width: "100%",
-  justifyContent: "flex-start",
-};
-
-// ---------- Logo (text-based, no image, inherits theme font) ----------
-
-function Logo({ collapsed }: { collapsed: boolean }) {
-  return (
-    <HStack
-      gap={2}
-      vAlign="center"
-      style={{ padding: "var(--spacing-3) var(--spacing-4)", height: 56 }}
-    >
-      <Text
-        type="label"
-        weight="semibold"
-        style={{ fontSize: 18, letterSpacing: "-0.02em" }}
-      >
-        {collapsed ? "eP" : "ePersona"}
-      </Text>
-    </HStack>
-  );
-}
-
-// ---------- Chat history list ----------
-
-function ChatHistory({ collapsed }: { collapsed: boolean }) {
-  if (collapsed) return null;
-
-  return (
-    <VStack
-      gap={1}
-      style={{ padding: "0 var(--spacing-2)", flex: 1, overflowY: "auto" }}
-    >
-      <Text
-        type="supporting"
-        color="secondary"
-        style={{
-          padding: "var(--spacing-2) var(--spacing-3) var(--spacing-1)",
-        }}
-      >
-        Chats
-      </Text>
-      {CHAT_HISTORY.map((chat) => (
-        <Button
-          key={chat.id}
-          label={chat.title}
-          icon={<MessageSquare size={16} />}
-          variant="ghost"
-          size="sm"
-          style={fullWidthRow}
-          onClick={() => {}}
-        />
-      ))}
-    </VStack>
-  );
-}
-
-// ---------- Bottom profile/settings ----------
-// Uses a plain <div> with raw flexbox (not HStack/VStack) to guarantee
-// left-alignment regardless of Astryx's default cross-axis centering.
-
-function ProfileFooter({ collapsed }: { collapsed: boolean }) {
+function ProfileFooter() {
   const { user } = useUser();
   const { signOut } = useClerk();
 
   return (
-    <div
-      style={{
-        padding: "var(--spacing-3) var(--spacing-2)",
-        borderTop: "1px solid var(--border)",
-        display: "flex",
-        justifyContent: "flex-start",
-        alignItems: "center",
-        width: "100%",
-      }}
-    >
-      <DropdownMenu
-        button={{
-          label: collapsed ? "" : (user?.fullName ?? "Account"),
-          variant: "ghost",
-          isIconOnly: collapsed,
-          icon: (
-            <Avatar
-              name={user?.fullName ?? "User"}
-              src={user?.imageUrl}
-              size="small"
-            />
-          ),
-          style: {
-            justifyContent: "flex-start",
-            width: collapsed ? "auto" : "100%",
-            marginRight: "auto",
-          },
-        }}
-        hasChevron={!collapsed}
-        items={[
-          { label: "Profile", icon: <BadgeCheck size={14} /> },
-          { label: "Settings", icon: <Settings size={14} /> },
-          { type: "divider" },
-          {
-            label: "Log out",
-            icon: <LogOut size={14} />,
-            onClick: () => signOut(),
-          },
-        ]}
-      />
-    </div>
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />}>
+            <Avatar className="h-6 w-6 rounded-md">
+              <AvatarImage
+                src={user?.imageUrl}
+                alt={user?.fullName ?? "User"}
+              />
+              <AvatarFallback className="rounded-md text-xs">
+                {user?.fullName?.[0] ?? "U"}
+              </AvatarFallback>
+            </Avatar>
+            <span className="truncate">{user?.fullName ?? "Account"}</span>
+            <ChevronsUpDown className="ml-auto h-4 w-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" className="w-56">
+            <DropdownMenuItem>
+              <BadgeCheck className="h-4 w-4" /> Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Settings className="h-4 w-4" /> Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => signOut()}>
+              <LogOut className="h-4 w-4" /> Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }
 
-// ---------- Main Sidebar ----------
-
-export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(true);
-  const width = collapsed ? 60 : 260;
-
+export function AppSidebar() {
   return (
-    <VStack
-      style={{
-        width,
-        height: "100%",
-        borderRight: "1px solid var(--border)",
-        flexShrink: 0,
-        transition: "width 160ms ease",
-      }}
-    >
-      {/* Top: logo + toggle */}
-      <HStack
-        vAlign="center"
-        style={{
-          justifyContent: collapsed ? "center" : "space-between",
-          padding: "var(--spacing-3) var(--spacing-3) var(--spacing-2)",
-        }}
-      >
-        {!collapsed && <Logo collapsed={collapsed} />}
-        <Button
-          label="Toggle sidebar"
-          variant="ghost"
-          size="sm"
-          isIconOnly
-          icon={<PanelLeft size={16} />}
-          onClick={() => setCollapsed((v) => !v)}
-        />
-      </HStack>
+    <SidebarPrimitive collapsible="icon">
+      <SidebarHeader className="px-3 py-3">
+        <span className="font-heading text-lg font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+          e Persona
+        </span>
+        <span className="hidden font-heading text-lg font-semibold group-data-[collapsible=icon]:block">
+          eP
+        </span>
+      </SidebarHeader>
 
-      {/* New chat */}
-      <div style={{ padding: "var(--spacing-3) var(--spacing-2)" }}>
-        <Button
-          label="New chat"
-          icon={<SquarePen size={16} />}
-          variant="secondary"
-          isIconOnly={collapsed}
-          style={collapsed ? undefined : fullWidthRow}
-          onClick={() => {}}
-        />
-      </div>
+      <SidebarContent>
+        <div className="px-2 pt-1">
+          <Button
+            variant="secondary"
+            className="w-full justify-start gap-2 group-data-[collapsible=icon]:justify-center"
+          >
+            <SquarePen className="h-4 w-4" />
+            <span className="group-data-[collapsible=icon]:hidden">
+              New chat
+            </span>
+          </Button>
+        </div>
 
-      {/* Chat history */}
-      <ChatHistory collapsed={collapsed} />
+        <SidebarGroup>
+          <SidebarGroupLabel>Chats</SidebarGroupLabel>
+          <SidebarMenu>
+            {CHAT_HISTORY.map((chat) => (
+              <SidebarMenuItem key={chat.id}>
+                <SidebarMenuButton>
+                  <MessageSquare className="h-4 w-4" />
+                  <span>{chat.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
 
-      {/* Bottom profile */}
-      <ProfileFooter collapsed={collapsed} />
-    </VStack>
+      <SidebarFooter>
+        <ProfileFooter />
+      </SidebarFooter>
+    </SidebarPrimitive>
   );
 }
+
+export { SidebarProvider, SidebarTrigger };

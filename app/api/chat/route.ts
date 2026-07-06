@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "You've used all your free messages. Thanks for trying e Persona!",
+          "You've used all your free messages. Thanks for trying e Persona! Feel free to reach out to us at **deepakrvermaa@gmail.com** to request more free messages. ",
       },
       { status: 403 },
     );
