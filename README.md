@@ -18,7 +18,6 @@ Users can switch between personas at any point, and each persona can pull in rea
 ## Features
 
 - **Dual persona chat** — talk to Hitesh Choudhary or Piyush Garg
-- **Persona switching** — toggle between personas from the chat header
 - **Authentic voice** — system prompts built from real YouTube transcript analysis, not guesswork
 - **Hinglish output** — responses in natural Hindi-English code-switching, written in Roman script for readability
 - **Live video search tool** — the model can call the YouTube Data API to find and link the persona's own real videos relevant to a topic, formatted as clickable markdown links
